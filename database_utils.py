@@ -56,14 +56,16 @@ class DatabaseConnector:
         with open('db_creds.yaml') as f:
             # use safe_load instead load
             dataMap = yaml.safe_load(f)
-
+        
+        ## testing-start -> remove
         for key, value in dataMap.items():
             print(key, '\t', value)
         # print(dataMap.get('RDS_HOST'))
         # print(dataMap['RDS_HOST'])
+        # testing-end
 
         return dataMap
-    
+
     def init_db_engine(self):
         from sqlalchemy import create_engine
 
@@ -81,14 +83,15 @@ class DatabaseConnector:
 
         engine.connect()
 
+        ## testing-start -> remove
         from sqlalchemy import inspect
         inspector = inspect(engine)
         db_names_list = inspector.get_table_names()
 
         print(db_names_list)
-
+        # testing-end
         return engine
-    
+
 def run():
     myconnection = DatabaseConnector()
     myconnection.init_db_engine()
