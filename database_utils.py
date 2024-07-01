@@ -24,7 +24,7 @@ class DatabaseConnector:
     method()
         description
     '''
-    def __init__(self, parm1, parm2):
+    def __init__(self, parm1='', parm2=''):
         #pass
 
         self.parm1 = parm1
@@ -32,7 +32,7 @@ class DatabaseConnector:
         self.attr1 = ''
         self.attr2 = ''
 
-    def method1(self, parm1) -> None:
+    def method1(self, parm1='') -> None:
         '''
         Description
 
@@ -50,17 +50,48 @@ class DatabaseConnector:
 
         #return self.attr1, self.attr2
 
-def read_db_creds() -> None:
-    import yaml
-    
-    with open('db_creds.yaml') as f:
-        # use safe_load instead load
-        dataMap = yaml.safe_load(f)
+    def read_db_creds(self):
+        import yaml
+        
+        with open('db_creds.yaml') as f:
+            # use safe_load instead load
+            dataMap = yaml.safe_load(f)
 
-    for key, value in dataMap.items():
-        print(key, '\t', value)
-    # print(dataMap.get('RDS_HOST'))
-    # print(dataMap['RDS_HOST'])
+        for key, value in dataMap.items():
+            print(key, '\t', value)
+        # print(dataMap.get('RDS_HOST'))
+        # print(dataMap['RDS_HOST'])
+
+        return dataMap
+    
+    def init_db_engine(self):
+        from sqlalchemy import create_engine
+
+        creds = self.read_db_creds()
+        
+        DATABASE_TYPE = 'postgresql'
+        DBAPI = 'psycopg2'
+        HOST = creds['RDS_HOST']
+        USER = creds['RDS_USER']
+        PASSWORD = creds['RDS_PASSWORD'] #None
+        DATABASE = creds['RDS_DATABASE']
+        PORT = creds['RDS_PORT']
+
+        engine = create_engine(f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}")
+
+        engine.connect()
+
+        from sqlalchemy import inspect
+        inspector = inspect(engine)
+        db_names_list = inspector.get_table_names()
+
+        print(db_names_list)
+
+        return engine
+    
+def run():
+    myconnection = DatabaseConnector()
+    myconnection.init_db_engine()
 
 if __name__ == '__main__':
-    read_db_creds()
+    run()
