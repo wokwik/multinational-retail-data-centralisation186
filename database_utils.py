@@ -81,20 +81,24 @@ class DatabaseConnector:
 
         engine = create_engine(f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}")
 
+        return engine
+
+    def list_db_tables(self):
+        from sqlalchemy import inspect
+
+        engine = self.init_db_engine()
         engine.connect()
 
-        ## testing-start -> remove
-        from sqlalchemy import inspect
         inspector = inspect(engine)
         db_names_list = inspector.get_table_names()
 
         print(db_names_list)
-        # testing-end
-        return engine
-
+        
+        return
+    
 def run():
     myconnection = DatabaseConnector()
-    myconnection.init_db_engine()
+    myconnection.list_db_tables()
 
 if __name__ == '__main__':
     run()
