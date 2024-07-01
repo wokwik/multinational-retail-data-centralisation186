@@ -3,7 +3,6 @@ class DatabaseConnector
 
 DatabaseConnector will be used to connect with and upload data to the database.
 '''
-import random
 
 class DatabaseConnector:
     '''
@@ -50,3 +49,18 @@ class DatabaseConnector:
         pass
 
         #return self.attr1, self.attr2
+
+def read_db_creds() -> None:
+    import yaml
+    
+    with open('db_creds.yaml') as f:
+        # use safe_load instead load
+        dataMap = yaml.safe_load(f)
+
+    for key, value in dataMap.items():
+        print(key, '\t', value)
+    # print(dataMap.get('RDS_HOST'))
+    # print(dataMap['RDS_HOST'])
+
+if __name__ == '__main__':
+    read_db_creds()
