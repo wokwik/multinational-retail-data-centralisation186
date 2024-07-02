@@ -51,3 +51,6 @@ class DataExtractor:
         pass
 
         #return self.attr1, self.attr2
+
+if __name__ == '__main__':
+    pass

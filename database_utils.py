@@ -103,10 +103,10 @@ class DatabaseConnector:
 
         engine = self.init_db_engine()
         #conn = engine.connect()
-        table_load = pd.read_sql_table(db_table, engine)
+        table_load = pd.read_sql_table(db_table, engine, index_col=None)
         #conn.close()
         #print(table_load.head(5))
-
+        table_load.drop(['index'], axis=1, inplace=True)
         return table_load
     
 def read_rds_table(conn, db_table):
