@@ -1,4 +1,6 @@
 db_creds.yaml
+db_creds_remote.yaml
+db_creds_local.yaml
 data/
 .DS_Store
 __pycache__/

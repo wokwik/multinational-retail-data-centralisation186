@@ -95,11 +95,13 @@ class DataCleaning:
 
         return dfc
         #pass
-
+    
 if __name__ == '__main__':
+    
     from database_utils import DatabaseConnector
 
     myConnection = DatabaseConnector()
+    
     dataCleaner = DataCleaning()
 
     db_names_list = myConnection.list_db_tables()
@@ -111,6 +113,7 @@ if __name__ == '__main__':
             table_load = myConnection.read_db_table(db_table)
             # print(table_load.head(5))
             dfc = dataCleaner.clean_user_data(table_load)
-            print(dfc.head(5))
+            #print(dfc.head(5))
+            myConnection.upload_to_db(dfc,'dim_users')
 
     #pass

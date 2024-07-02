@@ -50,12 +50,17 @@ class DatabaseConnector:
 
         #return self.attr1, self.attr2
 
-    def read_db_creds(self):
+    def read_db_creds(self, mode='remote'):
         import yaml
         
-        with open('db_creds.yaml') as f:
-            # use safe_load instead load
-            dataMap = yaml.safe_load(f)
+        if mode == 'local':
+            with open('db_creds_local.yaml') as f:
+                # use safe_load instead load
+                dataMap = yaml.safe_load(f)
+        elif mode == 'remote':
+            with open('db_creds_remote.yaml') as f:
+                # use safe_load instead load
+                dataMap = yaml.safe_load(f)
         
         ## testing-start -> remove
         # for key, value in dataMap.items():
@@ -66,10 +71,10 @@ class DatabaseConnector:
 
         return dataMap
 
-    def init_db_engine(self):
+    def init_db_engine(self, mode='remote'):
         from sqlalchemy import create_engine
 
-        creds = self.read_db_creds()
+        creds = self.read_db_creds(mode)
         
         DATABASE_TYPE = 'postgresql'
         DBAPI = 'psycopg2'
@@ -83,10 +88,10 @@ class DatabaseConnector:
 
         return engine
 
-    def list_db_tables(self):
+    def list_db_tables(self, mode='remote'):
         from sqlalchemy import inspect
 
-        engine = self.init_db_engine()
+        engine = self.init_db_engine(mode)
         conn = engine.connect()
 
         inspector = inspect(engine)
@@ -101,7 +106,7 @@ class DatabaseConnector:
     def read_db_table(self, db_table):
         import pandas as pd
 
-        engine = self.init_db_engine()
+        engine = self.init_db_engine(mode='remote')
         #conn = engine.connect()
         table_load = pd.read_sql_table(db_table, engine, index_col=None)
         #conn.close()
@@ -109,6 +114,12 @@ class DatabaseConnector:
         table_load.drop(['index'], axis=1, inplace=True)
         return table_load
     
+    def upload_to_db(self, dfc, table_name):
+        print(dfc.head(5))
+        engine = self.init_db_engine(mode='local')
+        dfc.to_sql(name=table_name, con=engine, if_exists='replace', index=False)
+        return
+
 def read_rds_table(conn, db_table):
 
     table_load = conn.read_db_table(db_table)
@@ -118,7 +129,7 @@ def read_rds_table(conn, db_table):
 if __name__ == '__main__':
     myconnection = DatabaseConnector()
     
-    db_names_list = myconnection.list_db_tables()
+    db_names_list = myconnection.list_db_tables(mode='remote')
 
     for db_table in db_names_list:
         # ['legacy_store_details', 'dim_card_details', 'legacy_users', 'orders_table']
