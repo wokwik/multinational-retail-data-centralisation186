@@ -63,8 +63,26 @@ class DataExtractor:
         #df.to_csv('./data/card_details.csv', sep=',', index=False, header=True, encoding='utf-8')
         return df
 
+    def list_number_of_stores(self):
+        import requests
+        import json
+
+        url = "https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/number_stores"
+        headers = {
+            "Content-Type": "application/json",
+            "x-api-key": "yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX"
+        }
+
+        response = requests.get(url, headers=headers)
+
+        print(json.dumps(response.json()))
+        return response.json()['number_stores']
+
 if __name__ == '__main__':
-    pdfExtractor = DataExtractor()
+    extractor = DataExtractor()
 
     pdf_path = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf'
-    df = pdfExtractor.retrieve_pdf_data(pdf_path)
+    #df = extractor.retrieve_pdf_data(pdf_path)
+
+    num_stores = extractor.list_number_of_stores()
+    print('Number of Stores ::', num_stores)

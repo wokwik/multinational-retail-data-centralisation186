@@ -113,27 +113,26 @@ if __name__ == '__main__':
     from database_utils import DatabaseConnector
     from data_extraction import DataExtractor
 
-    dbConnection = DatabaseConnector()
-    pdfExtractor = DataExtractor()    
-    dataCleaner = DataCleaning()
+    connector = DatabaseConnector()
+    extractor = DataExtractor()    
+    cleaner = DataCleaning()
 
-    db_names_list = dbConnection.list_db_tables()
+    db_names_list = connector.list_db_tables()
 
     for db_table in db_names_list:
         # ['legacy_store_details', 'dim_card_details', 'legacy_users', 'orders_table']
         if db_table == 'legacy_users':
             print(f'\nReading DB Table :: {db_table} \n' )
-            table_load = dbConnection.read_db_table(db_table)
+            table_load = connector.read_db_table(db_table)
             # print(table_load.head(5))
-            dfc_users = dataCleaner.clean_user_data(table_load)
+            dfc_users = cleaner.clean_user_data(table_load)
             #print(dfc.head(5))
-            dbConnection.upload_to_db(dfc_users,'dim_users')
-
+            connector.upload_to_db(dfc_users,'dim_users')
     
     pdf_path = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf'
     print(f'\nReading PDF :: {pdf_path} \n' )
-    pdf_load = pdfExtractor.retrieve_pdf_data(pdf_path)
+    pdf_load = extractor.retrieve_pdf_data(pdf_path)
     
-    dfc_pdf = dataCleaner.clean_card_data(pdf_load)
-    dbConnection.upload_to_db(dfc_pdf,'dim_card_details')
+    dfc_pdf = cleaner.clean_card_data(pdf_load)
+    connector.upload_to_db(dfc_pdf,'dim_card_details')
     #pass

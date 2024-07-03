@@ -127,14 +127,14 @@ def read_rds_table(conn, db_table):
     return table_load
     
 if __name__ == '__main__':
-    myconnection = DatabaseConnector()
+    connector = DatabaseConnector()
     
-    db_names_list = myconnection.list_db_tables(mode='remote')
+    db_names_list = connector.list_db_tables(mode='remote')
 
     for db_table in db_names_list:
         # ['legacy_store_details', 'dim_card_details', 'legacy_users', 'orders_table']
         print(f'\nReading DB Table :: {db_table} \n' )
-        table_load = read_rds_table(myconnection, db_table)
+        table_load = read_rds_table(connector, db_table)
         print(table_load.head(5))
 
 
