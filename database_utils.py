@@ -114,6 +114,7 @@ class DatabaseConnector:
         return table_load
     
     def upload_to_db(self, dfc, table_name):
+        print(f'Writing DB Table :: {table_name} \n' )
         print(dfc.head(5))
         engine = self.init_db_engine(mode='local')
         dfc.to_sql(name=table_name, con=engine, if_exists='replace', index=False)
