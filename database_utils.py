@@ -25,12 +25,12 @@ class DatabaseConnector:
         description
     '''
     def __init__(self, parm1='', parm2=''):
-        #pass
 
         self.parm1 = parm1
         self.parm2 = parm2
         self.attr1 = ''
         self.attr2 = ''
+        #pass
 
     def method1(self, parm1='') -> None:
         '''
@@ -46,9 +46,8 @@ class DatabaseConnector:
         parm: type
             description
         '''
-        pass
-
         #return self.attr1, self.attr2
+        pass
 
     def read_db_creds(self, mode='remote'):
         import yaml

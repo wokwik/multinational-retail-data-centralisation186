@@ -26,15 +26,14 @@ class DataExtractor:
     method()
         description
     '''
-    def __init__(self, parm1, parm2):
-        #pass
-
+    def __init__(self, parm1='', parm2=''):
         self.parm1 = parm1
         self.parm2 = parm2
         self.attr1 = ''
         self.attr2 = ''
+        #pass
 
-    def method1(self, parm1) -> None:
+    def method1(self, parm1='') -> None:
         '''
         Description
 
@@ -48,9 +47,27 @@ class DataExtractor:
         parm: type
             description
         '''
+        #return self.attr1, self.attr2
         pass
 
-        #return self.attr1, self.attr2
+    def retrieve_pdf_data(self, pdf_path):
+        import tabula
+        import pandas as pd
+
+        dfs = tabula.read_pdf(pdf_path, pages = 'all', stream=False)
+        #print('dfs length :: ',len(dfs))
+        #print(dfs[0].head(5))
+        df = pd.concat(dfs) # concat list of dataframes that represent individual pdf pages
+
+        #print('df shape ::', df.shape)
+        #df.to_csv('./data/card_details.csv', sep=',', index=False, header=True, encoding='utf-8')
+        return df
+        
+    def clean_card_data(self, df):
+        pass
 
 if __name__ == '__main__':
-    pass
+    myExtractor = DataExtractor()
+
+    pdf_path = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf'
+    df = myExtractor.retrieve_pdf_data(pdf_path)
