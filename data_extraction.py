@@ -62,12 +62,9 @@ class DataExtractor:
         #print('df shape ::', df.shape)
         #df.to_csv('./data/card_details.csv', sep=',', index=False, header=True, encoding='utf-8')
         return df
-        
-    def clean_card_data(self, df):
-        pass
 
 if __name__ == '__main__':
-    myExtractor = DataExtractor()
+    pdfExtractor = DataExtractor()
 
     pdf_path = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf'
-    df = myExtractor.retrieve_pdf_data(pdf_path)
+    df = pdfExtractor.retrieve_pdf_data(pdf_path)

@@ -90,30 +90,47 @@ class DataCleaning:
         ## if email address does not contain @, then replace with NaN for removal in a later step
         df['email_address'] = df['email_address'].apply(lambda x: x if type(x) != float and '@' in x else np.nan)
 
-        ## remove raws for already existing and newly introduced NaN cells in the conversion above.
+        ## remove raws for both already existing and newly introduced NaN cells in the conversion above.
         dfc = df[~df.isnull().any(axis=1)].copy(deep=True)
 
         return dfc
         #pass
     
+
+    def clean_card_data(self, df):
+        df['date_payment_confirmed'] = df['date_payment_confirmed'].apply(lambda x: self.clean_date(x))
+
+        ## remove raws for both already existing and newly introduced NaN cells in the conversion above.
+        dfc = df[~df.isnull().any(axis=1)].copy(deep=True)
+
+        #dfc.to_csv('./data/card_details_clean.csv', sep=',', index=False, header=True, encoding='utf-8')
+
+        return dfc
+        #pass
+
 if __name__ == '__main__':
     
     from database_utils import DatabaseConnector
+    from data_extraction import DataExtractor
 
-    myConnection = DatabaseConnector()
-    
+    dbConnection = DatabaseConnector()
+    pdfExtractor = DataExtractor()    
     dataCleaner = DataCleaning()
 
-    db_names_list = myConnection.list_db_tables()
+    db_names_list = dbConnection.list_db_tables()
 
     for db_table in db_names_list:
         # ['legacy_store_details', 'dim_card_details', 'legacy_users', 'orders_table']
-        if db_table == 'legacy_users':
+        if db_table == 'legacy_users' and False:
             print(f'\nReading DB Table :: {db_table} \n' )
-            table_load = myConnection.read_db_table(db_table)
+            table_load = dbConnection.read_db_table(db_table)
             # print(table_load.head(5))
             dfc = dataCleaner.clean_user_data(table_load)
             #print(dfc.head(5))
-            myConnection.upload_to_db(dfc,'dim_users')
+            dbConnection.upload_to_db(dfc,'dim_users')
 
+    pdf_path = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf'
+    pdf_load = pdfExtractor.retrieve_pdf_data(pdf_path)
+    
+    dfc = dataCleaner.clean_card_data(pdf_load)
     #pass
