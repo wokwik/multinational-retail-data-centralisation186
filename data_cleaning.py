@@ -3,9 +3,14 @@ Class DataCleaning
 
 This script will contain a class DataCleaning with methods to clean data from each of the data sources.
 '''
+
+import pandas as pd
 import numpy as np
-import re
 from datetime import datetime
+import re
+
+from database_utils import DatabaseConnector
+from data_extraction import DataExtractor
 
 class DataCleaning:
     '''
@@ -130,13 +135,66 @@ class DataCleaning:
 
         return dfc
     
-if __name__ == '__main__':
-    import pandas as pd
-    from database_utils import DatabaseConnector
-    from data_extraction import DataExtractor
+    def clean_weight(self, string):
+        def make_numeric(equation):
+            if '+' in equation:
+                y = equation.split('+')
+                x = int(y[0].strip())+int(y[1].strip()) if "." not in equation else float(y[0].strip())+float(y[1].strip())
+            elif '-' in equation:
+                y = equation.split('-')
+                x = int(y[0].strip())-int(y[1].strip()) if "." not in equation else float(y[0].strip())-float(y[1].strip())
+            elif 'x' in equation or '*' in equation:
+                y = equation.split('x') if 'x' in equation else equation.split('*')
+                x = int(y[0].strip())*int(y[1].strip()) if "." not in equation else float(y[0].strip())*float(y[1].strip())
+            elif '/' in equation:
+                y = equation.split('/')
+                x = int(y[0].strip())/int(y[1].strip()) if "." not in equation else float(y[0].strip())/float(y[1].strip())
+                
+            return x
 
+        matches = ["+", "-", "x", "*", "/"]
+        #string = '5.3g'
+        if 'kg' in string.lower() and not any(x in string for x in matches):
+            string.lower().replace("kg", "").replace(',', '.')
+            string = re.sub('[^0-9.]', '', string)
+            val = float(string)
+        #string = '100g'
+        elif 'g' in string.lower() and not any(x in string for x in matches):
+            string = string.lower().replace("g", "").replace(',', '.')
+            string = re.sub('[^0-9.]', '', string)
+            val = float(string)/1000
+        #string = '100ml'
+        elif 'ml' in string and not any(x in string for x in matches):
+            string = string.lower().replace("ml", "").replace(',', '.')
+            string = re.sub('[^0-9.]', '', string)
+            val = float(string)/1000
+        #string = '10oz' 
+        elif 'oz' in string.lower() and not any(x in string for x in matches):
+            #1oz = 28.4ml
+            string = string.lower().replace("oz", "").replace(',', '.')
+            string = re.sub('[^0-9.]', '', string)
+            val = float(string)*28.4/1000
+        #string = '2 x 50g'
+        elif any(x in string for x in matches):
+            kg = 'kg' in string.lower()
+            g = 'kg' not in string.lower() and 'g' in string.lower()
+            oz = 'oz' in string.lower()
+            string = string.lower().replace("kg", "").replace("g", "").replace("ml", "").replace("oz", "").replace(",",".")
+            val = make_numeric(string)
+            val = val / 1000 if g == True else val
+            val = val * 28.4 / 1000 if oz == True else val
+        else:
+            val = np.nan
+
+        return val
+    
+    def convert_product_weights(self, df):
+        df['weight'] = df['weight'].apply(lambda x: self.clean_weight(str(x)))
+        return df
+
+def clean_warehouse_users():
     connector = DatabaseConnector()
-    extractor = DataExtractor()    
+    extractor = DataExtractor()
     cleaner = DataCleaning()
 
     db_names_list = connector.list_db_tables()
@@ -152,12 +210,26 @@ if __name__ == '__main__':
             dfc_users.to_csv('./data/legacy_users_clean.csv', sep=',', index=False, header=True, encoding='utf-8')
             connector.upload_to_db(dfc_users,'dim_users')
     
+    return
+
+def clean_pdf_cards_details():
+    connector = DatabaseConnector()
+    extractor = DataExtractor()
+    cleaner = DataCleaning()
+
     pdf_path = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf'
     print(f'\nReading PDF :: {pdf_path} \n' )
     pdf_load = extractor.retrieve_pdf_data(pdf_path)
     
     dfc_pdf = cleaner.clean_card_data(pdf_load)
     connector.upload_to_db(dfc_pdf,'dim_card_details')
+    
+    return
+
+def clean_api_stores():
+    connector = DatabaseConnector()
+    extractor = DataExtractor()
+    cleaner = DataCleaning()
 
     num_stores = extractor.list_number_of_stores()
     print('Number of Stores ::', num_stores)
@@ -176,4 +248,26 @@ if __name__ == '__main__':
     print(dfc_stores.head(5))
     dfc_stores.to_csv('./data/stores_clean.csv', sep=',', index=False, header=True, encoding='utf-8')
     connector.upload_to_db(dfc_stores,'dim_store_details')
+    
+    return
+
+def clean_s3_products():
+    connector = DatabaseConnector()
+    extractor = DataExtractor()    
+    cleaner = DataCleaning()
+
+    df_s3 = extractor.extract_from_s3()
+    dfkg_s3 = cleaner.convert_product_weights(df_s3)
+    print(dfkg_s3.head())
+    print(dfkg_s3.tail())
+    
+    return
+
+if __name__ == '__main__':
+    # clean_warehouse_users()
+    # clean_pdf_cards_details()
+    # clean_api_stores()
+    clean_s3_products()
+
+
     #pass

@@ -4,7 +4,8 @@ class DataExtractor
 This class will work as a utility class, in it you will be creating methods that help extract data from different data sources.
 The methods contained will be fit to extract data from a particular data source, these sources will include CSV files, an API and an S3 bucket.
 '''
-import random
+
+import pandas as pd
 
 class DataExtractor:
     '''
@@ -26,6 +27,7 @@ class DataExtractor:
     method()
         description
     '''
+    
     def __init__(self, parm1='', parm2=''):
         self.parm1 = parm1
         self.parm2 = parm2
@@ -52,7 +54,6 @@ class DataExtractor:
 
     def retrieve_pdf_data(self, pdf_path):
         import tabula
-        import pandas as pd
 
         dfs = tabula.read_pdf(pdf_path, pages = 'all', stream=False)
         #print('dfs length :: ',len(dfs))
@@ -123,21 +124,21 @@ if __name__ == '__main__':
 
     extractor = DataExtractor()
 
-    # pdf_path = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf'
-    # df_pdf = extractor.retrieve_pdf_data(pdf_path)
+    pdf_path = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf'
+    df_pdf = extractor.retrieve_pdf_data(pdf_path)
 
-    # num_stores = extractor.list_number_of_stores()
-    # print('Number of Stores ::', num_stores)
+    num_stores = extractor.list_number_of_stores()
+    print('Number of Stores ::', num_stores)
 
-    # stores_list = []
-    # for x in range(0,num_stores):
-    #     store_data = extractor.retrieve_stores_data(x)
-    #     stores_list.append(store_data)
+    stores_list = []
+    for x in range(0,num_stores):
+        store_data = extractor.retrieve_stores_data(x)
+        stores_list.append(store_data)
 
-    # df_stores = pd.DataFrame(stores_list)
-    # print(df_stores.head(5))
+    df_stores = pd.DataFrame(stores_list)
+    print(df_stores.head(5))
 
-    #df_stores.to_csv('./data/stores.csv', sep=',', index=False, header=True, encoding='utf-8')
+    df_stores.to_csv('./data/stores.csv', sep=',', index=False, header=True, encoding='utf-8')
 
     df_s3 = extractor.extract_from_s3()
     print(df_s3)
