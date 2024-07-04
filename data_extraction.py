@@ -93,24 +93,51 @@ class DataExtractor:
         #print(json.dumps(response.json()))
         return response.json()
     
+    def extract_from_s3(self):
+        import boto3
+        from botocore import UNSIGNED
+        from botocore.config import Config
+
+        BUCKET_NAME = 'data-handling-public' 
+        KEY = 'products.csv' 
+        s3_client = boto3.client('s3', config=Config(signature_version=UNSIGNED))
+
+        #create a list of 'Contect' objects from the s3 bucket
+        #list_files = client.list_objects(Bucket=bucket)['Contents']
+        response = s3_client.get_object(Bucket=BUCKET_NAME, Key=KEY)
+
+        status = response.get("ResponseMetadata", {}).get("HTTPStatusCode")
+
+        if status == 200:
+            print(f"Successful S3 get_object response. Status - {status}")
+            df_s3 = pd.read_csv(response.get("Body"))
+            return(df_s3)
+        else:
+            print(f"Unsuccessful S3 get_object response. Status - {status}")
+            return None
+
+
 if __name__ == '__main__':
 
     import pandas as pd
 
     extractor = DataExtractor()
 
-    pdf_path = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf'
-    #df_pdf = extractor.retrieve_pdf_data(pdf_path)
+    # pdf_path = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf'
+    # df_pdf = extractor.retrieve_pdf_data(pdf_path)
 
-    num_stores = extractor.list_number_of_stores()
-    print('Number of Stores ::', num_stores)
+    # num_stores = extractor.list_number_of_stores()
+    # print('Number of Stores ::', num_stores)
 
-    stores_list = []
-    for x in range(0,num_stores):
-        store_data = extractor.retrieve_stores_data(x)
-        stores_list.append(store_data)
+    # stores_list = []
+    # for x in range(0,num_stores):
+    #     store_data = extractor.retrieve_stores_data(x)
+    #     stores_list.append(store_data)
 
-    df_stores = pd.DataFrame(stores_list)
-    print(df_stores.head(5))
+    # df_stores = pd.DataFrame(stores_list)
+    # print(df_stores.head(5))
 
     #df_stores.to_csv('./data/stores.csv', sep=',', index=False, header=True, encoding='utf-8')
+
+    df_s3 = extractor.extract_from_s3()
+    print(df_s3)
