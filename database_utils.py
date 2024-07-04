@@ -102,40 +102,19 @@ class DatabaseConnector:
 
         return db_names_list
     
-    def read_db_table(self, db_table):
-        import pandas as pd
-
-        engine = self.init_db_engine(mode='remote')
-        #conn = engine.connect()
-        table_load = pd.read_sql_table(db_table, engine, index_col=None)
-        #conn.close()
-        #print(table_load.head(5))
-        table_load.drop(['index'], axis=1, inplace=True)
-        return table_load
-    
     def upload_to_db(self, dfc, table_name):
         print(f'Writing DB Table :: {table_name} \n' )
         print(dfc.head(5))
         engine = self.init_db_engine(mode='local')
         dfc.to_sql(name=table_name, con=engine, if_exists='replace', index=False)
         return
-
-def read_rds_table(conn, db_table):
-
-    table_load = conn.read_db_table(db_table)
-
-    return table_load
     
 if __name__ == '__main__':
     connector = DatabaseConnector()
     
     db_names_list = connector.list_db_tables(mode='remote')
 
-    for db_table in db_names_list:
-        # ['legacy_store_details', 'dim_card_details', 'legacy_users', 'orders_table']
-        print(f'\nReading DB Table :: {db_table} \n' )
-        table_load = read_rds_table(connector, db_table)
-        print(table_load.head(5))
+    print(db_names_list)
 
 
     

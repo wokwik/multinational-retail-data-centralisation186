@@ -52,17 +52,26 @@ class DataExtractor:
         #return self.attr1, self.attr2
         pass
 
+    def read_rds_table(self, connector, db_table, mode):
+        import pandas as pd
+
+        engine = connector.init_db_engine(mode)
+        
+        df_table = pd.read_sql_table(db_table, engine, index_col=None)
+
+        return df_table
+    
     def retrieve_pdf_data(self, pdf_path):
         import tabula
 
-        dfs = tabula.read_pdf(pdf_path, pages = 'all', stream=False)
+        df_list = tabula.read_pdf(pdf_path, pages = 'all', stream=False)
         #print('dfs length :: ',len(dfs))
         #print(dfs[0].head(5))
-        df = pd.concat(dfs) # concat list of dataframes that represent individual pdf pages
+        df_pdf = pd.concat(df_list) # concat list of dataframes that represent individual pdf pages
 
         #print('df shape ::', df.shape)
-        #df.to_csv('./data/card_details.csv', sep=',', index=False, header=True, encoding='utf-8')
-        return df
+
+        return df_pdf
 
     def list_number_of_stores(self):
         import requests
@@ -121,11 +130,26 @@ class DataExtractor:
 if __name__ == '__main__':
 
     import pandas as pd
+    from database_utils import DatabaseConnector
 
     extractor = DataExtractor()
+    connector = DatabaseConnector()
+
+    db_names_list = connector.list_db_tables(mode='remote')
+
+    for db_table in db_names_list:
+        # ['legacy_store_details', 'dim_card_details', 'legacy_users', 'orders_table']
+        print(f'\nReading DB Table :: {db_table} \n' )
+        df_table = extractor.read_rds_table(connector, db_table)
+        print(df_table.head(5))
+        #df_table.to_csv(f'./data/db__{db_table}.csv', sep=',', index=False, header=True, encoding='utf-8')
+
 
     pdf_path = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf'
-    df_pdf = extractor.retrieve_pdf_data(pdf_path)
+    df_card = extractor.retrieve_pdf_data(pdf_path)
+    print(df_card.head(5))
+    #df_card.to_csv('./data/pdf__card_details.csv', sep=',', index=False, header=True, encoding='utf-8')
+
 
     num_stores = extractor.list_number_of_stores()
     print('Number of Stores ::', num_stores)
@@ -137,8 +161,9 @@ if __name__ == '__main__':
 
     df_stores = pd.DataFrame(stores_list)
     print(df_stores.head(5))
+    #df_stores.to_csv('./data/api__stores.csv', sep=',', index=False, header=True, encoding='utf-8')
 
-    df_stores.to_csv('./data/stores.csv', sep=',', index=False, header=True, encoding='utf-8')
 
-    df_s3 = extractor.extract_from_s3()
-    print(df_s3)
+    df_products = extractor.extract_from_s3()
+    print(df_products.head(5))
+    #df_products.to_csv('./data/s3__products.csv', sep=',', index=False, header=True, encoding='utf-8')
