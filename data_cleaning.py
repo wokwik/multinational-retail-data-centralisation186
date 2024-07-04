@@ -281,8 +281,10 @@ def clean_s3_products():
     
     dfc_products = cleaner.clean_products_data(dfkg_s3)
 
-    dfc_products.to_csv('./data/products_clean.csv', sep=',', index=False, header=True, encoding='utf-8')
+    #dfc_products.to_csv('./data/products_clean.csv', sep=',', index=False, header=True, encoding='utf-8')
     
+    connector.upload_to_db(dfc_products,'dim_products')
+
     return
 
 if __name__ == '__main__':
