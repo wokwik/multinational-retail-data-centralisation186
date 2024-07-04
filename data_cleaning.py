@@ -119,11 +119,14 @@ class DataCleaning:
         col = df.pop('latitude')
         df.insert(3, col.name, col)
 
+        df.loc[df['store_code'].str.contains('WEB') & df['latitude'].isna(), 'latitude'] = "N/A"
+        print(df[df['store_code'].str.contains('WEB') & df['longitude'].isna(), 'longitude'].values[0])
+        print(df[df['store_code'].str.contains('WEB') & df['latitude'].isna(), 'latitude'].values[0])
         ## remove raws for both already existing and newly introduced NaN cells in the conversion above.
         dfc = df.dropna(axis=0, subset=['opening_date']).copy(deep=True) # or use inplace=True
         #dfc = df[~df.isnull().any(axis=1)].copy(deep=True) #removes all data because lat column is null i.e. empty for all rows! 
 
-        dfc.to_csv('./data/stores_clean.csv', sep=',', index=False, header=True, encoding='utf-8')
+        #dfc.to_csv('./data/stores_clean.csv', sep=',', index=False, header=True, encoding='utf-8')
 
         return dfc
     
@@ -140,7 +143,7 @@ if __name__ == '__main__':
 
     for db_table in db_names_list:
         # ['legacy_store_details', 'dim_card_details', 'legacy_users', 'orders_table']
-        if db_table == 'legacy_users' and False:
+        if db_table == 'legacy_users':
             print(f'\nReading DB Table :: {db_table} \n' )
             table_load = connector.read_db_table(db_table)
             # print(table_load.head(5))
@@ -171,5 +174,6 @@ if __name__ == '__main__':
 
     print('\nClean Stores ::')
     print(dfc_stores.head(5))
-    #dfc_stores.to_csv('./data/stores_clean.csv', sep=',', index=False, header=True, encoding='utf-8')
+    dfc_stores.to_csv('./data/stores_clean.csv', sep=',', index=False, header=True, encoding='utf-8')
+    connector.upload_to_db(dfc_stores,'dim_store_details')
     #pass
