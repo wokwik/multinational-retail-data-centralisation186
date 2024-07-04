@@ -211,7 +211,7 @@ class DataCleaning:
 ###
 # run code
 ###
-def clean_warehouse_users():
+def run_warehouse_users():
     connector = DatabaseConnector()
     extractor = DataExtractor()
     cleaner = DataCleaning()
@@ -240,8 +240,36 @@ def clean_warehouse_users():
     
     return
 
+def run_warehouse_orders():
+    connector = DatabaseConnector()
+    extractor = DataExtractor()
+    cleaner = DataCleaning()
 
-def clean_pdf_cards_details():
+    db_names_list = connector.list_db_tables()
+
+    for db_table in db_names_list:
+        # ['legacy_store_details', 'dim_card_details', 'legacy_users', 'orders_table']
+        if db_table == 'orders_table':
+            print(f'\Retrieving DB Table :: {db_table} \n' )
+            df_db = extractor.read_rds_table(connector, db_table, mode='remote')
+            print(df_db.head(5))
+            
+            print(f'\Table to CSV :: {db_table} - raw \n' )
+            df_db.to_csv('./data/db__orders_raw.csv', sep=',', index=False, header=True, encoding='utf-8')
+
+            #print(f'\Cleaning DB Table :: {db_table} \n' )
+            #dfc_users = cleaner.clean_user_data(df_db)
+            #print(dfc.head(5))
+
+            #print(f'\Table to CSV :: {db_table} - clean \n' )
+            #dfc_users.to_csv('./data/db__orders_clean.csv', sep=',', index=False, header=True, encoding='utf-8')
+            
+            #print(f'\Table to Local DB :: {db_table} \n' )
+            #connector.upload_to_db(dfc_users,'dim_users')
+    
+    return
+
+def run_pdf_cards_details():
     connector = DatabaseConnector()
     extractor = DataExtractor()
     cleaner = DataCleaning()
@@ -265,7 +293,7 @@ def clean_pdf_cards_details():
     
     return
 
-def clean_api_stores():
+def run_api_stores():
     connector = DatabaseConnector()
     extractor = DataExtractor()
     cleaner = DataCleaning()
@@ -300,7 +328,7 @@ def clean_api_stores():
     
     return
 
-def clean_s3_products():
+def run_s3_products():
     connector = DatabaseConnector()
     extractor = DataExtractor()    
     cleaner = DataCleaning()
@@ -326,10 +354,10 @@ def clean_s3_products():
     return
 
 if __name__ == '__main__':
-    clean_warehouse_users()
-    # clean_pdf_cards_details()
-    #clean_api_stores()
-    #clean_s3_products()
-
+    #run_warehouse_users()
+    #run_pdf_cards_details()
+    #run_api_stores()
+    #run_s3_products()
+    run_warehouse_orders()
 
     #pass
