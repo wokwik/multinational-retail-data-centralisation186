@@ -208,6 +208,18 @@ class DataCleaning:
         dfc = df[~df.isnull().any(axis=1)].copy(deep=True)
 
         return dfc
+    
+
+    def clean_orders_data(self, df):
+        # drop PII data first and last names
+        df.drop(['first_name'], axis=1, inplace=True)
+        df.drop(['last_name'], axis=1, inplace=True)
+        #drop empty column 1
+        df.drop(['1'], axis=1, inplace=True)
+
+        return df
+
+
 ###
 # run code
 ###
@@ -257,15 +269,15 @@ def run_warehouse_orders():
             print(f'\Table to CSV :: {db_table} - raw \n' )
             df_db.to_csv('./data/db__orders_raw.csv', sep=',', index=False, header=True, encoding='utf-8')
 
-            #print(f'\Cleaning DB Table :: {db_table} \n' )
-            #dfc_users = cleaner.clean_user_data(df_db)
-            #print(dfc.head(5))
+            print(f'\Cleaning DB Table :: {db_table} \n' )
+            dfc_orders = cleaner.clean_orders_data(df_db)
+            print(dfc_orders.head(5))
 
-            #print(f'\Table to CSV :: {db_table} - clean \n' )
-            #dfc_users.to_csv('./data/db__orders_clean.csv', sep=',', index=False, header=True, encoding='utf-8')
+            print(f'\Table to CSV :: {db_table} - clean \n' )
+            dfc_orders.to_csv('./data/db__orders_clean.csv', sep=',', index=False, header=True, encoding='utf-8')
             
-            #print(f'\Table to Local DB :: {db_table} \n' )
-            #connector.upload_to_db(dfc_users,'dim_users')
+            print(f'\Table to Local DB :: {db_table} \n' )
+            connector.upload_to_db(dfc_orders,'orders_table')
     
     return
 
