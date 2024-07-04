@@ -129,7 +129,7 @@ class DataCleaning:
         print(df[df['store_code'].str.contains('WEB') & df['latitude'].isna(), 'latitude'].values[0])
         ## remove raws for both already existing and newly introduced NaN cells in the conversion above.
         dfc = df.dropna(axis=0, subset=['opening_date']).copy(deep=True) # or use inplace=True
-        #dfc = df[~df.isnull().any(axis=1)].copy(deep=True) #removes all data because lat column is null i.e. empty for all rows! 
+        #dfc = df[~df.isnull().any(axis=1)].copy(deep=True) #removes all data rows because lat column is all null i.e. empty for all rows! 
 
         #dfc.to_csv('./data/stores_clean.csv', sep=',', index=False, header=True, encoding='utf-8')
 
@@ -192,6 +192,23 @@ class DataCleaning:
         df['weight'] = df['weight'].apply(lambda x: self.clean_weight(str(x)))
         return df
 
+    def clean_products_data(self, df):
+        # name unamed column
+        df.rename( columns={'Unnamed: 0':'index'}, inplace=True )
+
+        #clean ¬£39.99
+        df['product_price'] = df['product_price'].apply(lambda x: re.sub('[^0-9.]', '', x) if isinstance(x,str) else x)
+
+        # clean date from none date or wrong and erronous formatted date
+        df['date_added'] = df['date_added'].apply(lambda x: self.clean_date(x))
+
+        ## remove raws for both already existing and newly introduced NaN cells in the conversion above.
+        dfc = df[~df.isnull().any(axis=1)].copy(deep=True)
+
+        return dfc
+###
+# run code
+###
 def clean_warehouse_users():
     connector = DatabaseConnector()
     extractor = DataExtractor()
@@ -211,6 +228,7 @@ def clean_warehouse_users():
             connector.upload_to_db(dfc_users,'dim_users')
     
     return
+
 
 def clean_pdf_cards_details():
     connector = DatabaseConnector()
@@ -260,6 +278,10 @@ def clean_s3_products():
     dfkg_s3 = cleaner.convert_product_weights(df_s3)
     print(dfkg_s3.head())
     print(dfkg_s3.tail())
+    
+    dfc_products = cleaner.clean_products_data(dfkg_s3)
+
+    dfc_products.to_csv('./data/products_clean.csv', sep=',', index=False, header=True, encoding='utf-8')
     
     return
 
