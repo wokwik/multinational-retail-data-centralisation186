@@ -114,8 +114,8 @@ class DataCleaning:
         # clean date. erroneous and wrong dates are changed to null
         df['opening_date'] = df['opening_date'].apply(lambda x: self.clean_date(x))
 
-        # clean 3n9 for staff_numbers, which should be numeric. remove non numeric strings
-        df['staff_numbers'] = df['staff_numbers'].apply(lambda x: re.sub('\D', '', x) if ~x.isnumeric() else x)
+        # clean 3n9 for staff_numbers, which should be numeric. remove non numeric characters so it becomes 39
+        df['staff_numbers'] = df['staff_numbers'].apply(lambda x: re.sub('\D', '', x) if isinstance(x, str) and not x.isnumeric() else x)
         
         # remove lat, which is empty and duplicate
         df.drop('lat', axis=1, inplace=True)
@@ -219,10 +219,22 @@ class DataCleaning:
 
         return df
 
+    def clean_events_data(self, df):
 
-###
+        dfc = df[pd.to_numeric(df['year'], errors='coerce').notnull()].copy(deep=True)
+        # df['year'] = df['year'].apply(lambda x:np.nan if pd.isna(x) or not x.isnumeric() else x)
+        # df['month'] = df['month'].apply(lambda x: np.nan if pd.isna(x) or not x.isnumeric() else x)
+        # df['day'] = df['day'].apply(lambda x: np.nan if pd.isna(x) or not x.isnumeric() else x)
+
+        dfc.dropna(how='any',axis=0, inplace=True) 
+
+        return dfc
+        #pass
+
+#######
 # run code
-###
+#######
+
 def run_warehouse_users():
     connector = DatabaseConnector()
     extractor = DataExtractor()
@@ -264,14 +276,14 @@ def run_warehouse_orders():
         if db_table == 'orders_table':
             print(f'\Retrieving DB Table :: {db_table} \n' )
             df_db = extractor.read_rds_table(connector, db_table, mode='remote')
-            print(df_db.head(5))
+            #print(df_db.head(5))
             
             print(f'\Table to CSV :: {db_table} - raw \n' )
             df_db.to_csv('./data/db__orders_raw.csv', sep=',', index=False, header=True, encoding='utf-8')
 
             print(f'\Cleaning DB Table :: {db_table} \n' )
             dfc_orders = cleaner.clean_orders_data(df_db)
-            print(dfc_orders.head(5))
+            #print(dfc_orders.head(5))
 
             print(f'\Table to CSV :: {db_table} - clean \n' )
             dfc_orders.to_csv('./data/db__orders_clean.csv', sep=',', index=False, header=True, encoding='utf-8')
@@ -345,7 +357,7 @@ def run_s3_products():
     extractor = DataExtractor()    
     cleaner = DataCleaning()
 
-    print(f'\Retrieving S3 :: Products \n' )
+    print(f'\Retrieving S3 CSV :: Products \n' )
     df_s3 = extractor.extract_from_s3()
 
     print(f'\S3 to CSV:: Stores - raw \n' )
@@ -365,11 +377,39 @@ def run_s3_products():
 
     return
 
+def run_json_events():
+    connector = DatabaseConnector()
+    extractor = DataExtractor()    
+    cleaner = DataCleaning()
+
+    json_url = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/date_details.json'
+
+    print(f'\Retrieving S3 Json :: Events \n' )
+    df_json = extractor.extract_from_json(json_url)
+
+    print(df_json.info())
+    print(type(df_json['month'][0]))
+    print(type(df_json['year'][0]))
+    print(f'\S3 to CSV:: Events - raw \n' )
+    df_json.to_csv('./data/s3__events_raw.csv', sep=',', index=False, header=True, encoding='utf-8')
+
+    print(f'\Cleaning S3 Json :: Events \n' )
+    dfc_events = cleaner.clean_events_data(df_json)
+
+    print(f'\S3 to CSV:: Events - clean \n' )
+    dfc_events.to_csv('./data/s3__events_clean.csv', sep=',', index=False, header=True, encoding='utf-8')
+    
+    print(f'\S3 to Local DB :: Events \n' )
+    connector.upload_to_db(dfc_events,'dim_events')
+
+    pass
+
 if __name__ == '__main__':
     #run_warehouse_users()
     #run_pdf_cards_details()
     #run_api_stores()
     #run_s3_products()
-    run_warehouse_orders()
+    #run_warehouse_orders()
+    run_json_events()
 
     #pass

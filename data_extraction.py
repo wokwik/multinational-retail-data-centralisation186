@@ -126,6 +126,13 @@ class DataExtractor:
             print(f"Unsuccessful S3 get_object response. Status - {status}")
             return None
 
+    def extract_from_json(self, json_url):
+
+        df_s3 = pd.read_json(json_url)
+
+        return df_s3
+        
+        #pass 
 
 if __name__ == '__main__':
 
