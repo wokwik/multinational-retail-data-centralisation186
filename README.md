@@ -23,17 +23,17 @@ The classes perform data cleaning tasks on the source data to ensure the data is
 # Installation instruction
 You will need Python 3+ installed on your machine
 
-You will need GitHub installed on your machine if you want to clone this repo, otherwise you can just download it from GitHub.
+You will need GitHub installed on your machine if you want to clone this repo, otherwise you can just download it from GitHub as zip file.
 
-You can run the hangman_Template.py file locally on your machine:
+You can run the data_cleaning.py file locally on your machine, which then uses the DatabaseConnector, DataExtractor, and DataCleaning classes to connect to and fetch the raw the data from source, clean it, and finally store in the a local database:
 
 1- open your temrinal or cmd window
 
-2- navigate to the location of the hangman_Template.py file
+2- navigate to the location of the data_cleaning.py file
 
-3- run hangman_Template.py using the following command:
+3- run data_cleaning.py using the following command:
 
-> python hangman_Template.py
+> python data_cleaning.py
 
 # File structure
 The directory includes three files:
