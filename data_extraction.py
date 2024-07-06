@@ -62,7 +62,7 @@ class DataExtractor:
         return df_table
     
     def retrieve_pdf_data(self, pdf_path):
-        import tabula
+        import tabula # type: ignore
 
         df_list = tabula.read_pdf(pdf_path, pages = 'all', stream=False)
         #print('dfs length :: ',len(dfs))
