@@ -221,13 +221,23 @@ class DataCleaning:
 
     def clean_events_data(self, df):
 
-        dfc = df[pd.to_numeric(df['year'], errors='coerce').notnull()].copy(deep=True)
-        # df['year'] = df['year'].apply(lambda x:np.nan if pd.isna(x) or not x.isnumeric() else x)
-        # df['month'] = df['month'].apply(lambda x: np.nan if pd.isna(x) or not x.isnumeric() else x)
-        # df['day'] = df['day'].apply(lambda x: np.nan if pd.isna(x) or not x.isnumeric() else x)
-
+        # work on a copy
+        dfc = df.copy(deep=True)
+        #convert all columns that need to be numeric individually
+        dfc['year'] = dfc['year'].apply(pd.to_numeric, errors='coerce')
+        dfc['month'] = dfc['month'].apply(pd.to_numeric, errors='coerce')
+        dfc['day'] = dfc['day'].apply(pd.to_numeric, errors='coerce')
+        
+        # remove all NaN and Nulls
         dfc.dropna(how='any',axis=0, inplace=True) 
 
+        # could be done using apply:
+        # df['year'] = df['year'].apply(lambda x:np.nan if pd.isna(x) or not str(x).isnumeric() else x)
+        # df['month'] = df['month'].apply(lambda x: np.nan if pd.isna(x) or not str(x).isnumeric() else x)
+        # df['day'] = df['day'].apply(lambda x: np.nan if pd.isna(x) or not str(x).isnumeric() else x)
+
+        # could be done in one go, but not ideal, as gives less control and is not composable!
+        #dfc = df[pd.to_numeric(df['year'], errors='coerce').notnull()].copy(deep=True) #removes all NaN and Null at once for all rows. but need to break it down.
         return dfc
         #pass
 
@@ -245,21 +255,21 @@ def run_warehouse_users():
     for db_table in db_names_list:
         # ['legacy_store_details', 'dim_card_details', 'legacy_users', 'orders_table']
         if db_table == 'legacy_users':
-            print(f'\Retrieving DB Table :: {db_table} \n' )
+            print(f'\nRetrieving DB Table :: {db_table}' )
             df_db = extractor.read_rds_table(connector, db_table, mode='remote')
             # print(table_load.head(5))
             
-            print(f'\Table to CSV :: {db_table} - raw \n' )
+            print(f'\nTable to CSV :: {db_table} - raw' )
             df_db.to_csv('./data/db__legacy_users_raw.csv', sep=',', index=False, header=True, encoding='utf-8')
 
-            print(f'\Cleaning DB Table :: {db_table} \n' )
+            print(f'\nCleaning DB Table :: {db_table}' )
             dfc_users = cleaner.clean_user_data(df_db)
             #print(dfc.head(5))
 
-            print(f'\Table to CSV :: {db_table} - clean \n' )
+            print(f'\nTable to CSV :: {db_table} - clean' )
             dfc_users.to_csv('./data/db__legacy_users_clean.csv', sep=',', index=False, header=True, encoding='utf-8')
             
-            print(f'\Table to Local DB :: {db_table} \n' )
+            print(f'\nTable to Local DB :: {db_table}' )
             connector.upload_to_db(dfc_users,'dim_users')
     
     return
@@ -274,21 +284,21 @@ def run_warehouse_orders():
     for db_table in db_names_list:
         # ['legacy_store_details', 'dim_card_details', 'legacy_users', 'orders_table']
         if db_table == 'orders_table':
-            print(f'\Retrieving DB Table :: {db_table} \n' )
+            print(f'\nRetrieving DB Table :: {db_table}' )
             df_db = extractor.read_rds_table(connector, db_table, mode='remote')
             #print(df_db.head(5))
             
-            print(f'\Table to CSV :: {db_table} - raw \n' )
+            print(f'\nTable to CSV :: {db_table} - raw' )
             df_db.to_csv('./data/db__orders_raw.csv', sep=',', index=False, header=True, encoding='utf-8')
 
-            print(f'\Cleaning DB Table :: {db_table} \n' )
+            print(f'\nCleaning DB Table :: {db_table}' )
             dfc_orders = cleaner.clean_orders_data(df_db)
             #print(dfc_orders.head(5))
 
-            print(f'\Table to CSV :: {db_table} - clean \n' )
+            print(f'\nTable to CSV :: {db_table} - clean' )
             dfc_orders.to_csv('./data/db__orders_clean.csv', sep=',', index=False, header=True, encoding='utf-8')
             
-            print(f'\Table to Local DB :: {db_table} \n' )
+            print(f'\nTable to Local DB :: {db_table}' )
             connector.upload_to_db(dfc_orders,'orders_table')
     
     return
@@ -300,19 +310,19 @@ def run_pdf_cards_details():
 
     pdf_path = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf'
     
-    print(f'\Retrieving PDF :: {pdf_path} \n' )
+    print(f'\nRetrieving PDF :: {pdf_path}' )
     df_pdf = extractor.retrieve_pdf_data(pdf_path)
     
-    print(f'\PDF to CSV :: {pdf_path} - raw \n' )
+    print(f'\nPDF to CSV :: {pdf_path} - raw' )
     df_pdf.to_csv('./data/pdf__card_details_raw.csv', sep=',', index=False, header=True, encoding='utf-8')
 
-    print(f'\Cleaning PDF :: {pdf_path} \n' )
+    print(f'\nCleaning PDF :: {pdf_path}' )
     dfc_cards = cleaner.clean_card_data(df_pdf)
     
-    print(f'\PDF to CSV :: {pdf_path} - clean \n' )
+    print(f'\nPDF to CSV :: {pdf_path} - clean' )
     dfc_cards.to_csv('./data/pdf__card_details_clean.csv', sep=',', index=False, header=True, encoding='utf-8')
 
-    print(f'\PDF to Local DB :: {pdf_path} \n' )
+    print(f'\nPDF to Local DB :: {pdf_path}' )
     connector.upload_to_db(dfc_cards,'dim_card_details')
     
     return
@@ -322,32 +332,44 @@ def run_api_stores():
     extractor = DataExtractor()
     cleaner = DataCleaning()
 
-    print(f'\nReading API  :: Number of Stores \n' )
-    num_stores = extractor.list_number_of_stores()
+    url = "https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/number_stores"
+    headers = {
+        "Content-Type": "application/json",
+        "x-api-key": "yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX"
+    }
+    
+    print(f'\nReading API  :: Number of Stores' )
+    num_stores = extractor.list_number_of_stores(url,headers)
     print('Number of Stores ::', num_stores)
     
-    print(f'\Retrieving API :: Individual Store Data \n' )
+    url = "https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/"
+    headers = {
+        "Content-Type": "application/json",
+        "x-api-key": "yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX"
+    }
+
+    print(f'\nRetrieving API :: Individual Store Data' )
     stores_list = []
-    for x in range(0,num_stores):
-        store_data = extractor.retrieve_stores_data(x)
+    for store_id in range(0,num_stores):
+        store_data = extractor.retrieve_stores_data(url, headers, store_id)
         stores_list.append(store_data)
 
     df_api = pd.DataFrame(stores_list)
     #print(df_api.head(5))
 
-    print(f'\API to CSV :: Stores - raw \n' )
+    print(f'\nAPI to CSV :: Stores - raw' )
     df_api.to_csv('./data/api__stores_raw.csv', sep=',', index=False, header=True, encoding='utf-8')
 
-    print(f'\Cleaning API :: Stores \n' )
+    print(f'\nCleaning API :: Stores' )
     dfc_stores = cleaner.called_clean_store_data(df_api)
 
     # print('\nClean Stores ::')
     # print(dfc_stores.head(5))
 
-    print(f'\API to CSV :: Stores - clean\n' )
+    print(f'\nAPI to CSV :: Stores - clean' )
     dfc_stores.to_csv('./data/api__stores_clean.csv', sep=',', index=False, header=True, encoding='utf-8')
     
-    print(f'\API to Local DB :: Stores \n' )
+    print(f'\nAPI to Local DB :: Stores' )
     connector.upload_to_db(dfc_stores,'dim_store_details')
     
     return
@@ -357,8 +379,11 @@ def run_s3_products():
     extractor = DataExtractor()    
     cleaner = DataCleaning()
 
+    BUCKET_NAME = 'data-handling-public' 
+    KEY = 'products.csv'
+
     print(f'\Retrieving S3 CSV :: Products \n' )
-    df_s3 = extractor.extract_from_s3()
+    df_s3 = extractor.extract_from_s3(BUCKET_NAME,KEY)
 
     print(f'\S3 to CSV:: Stores - raw \n' )
     df_s3.to_csv('./data/s3__products_raw.csv', sep=',', index=False, header=True, encoding='utf-8')

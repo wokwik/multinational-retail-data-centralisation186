@@ -73,48 +73,34 @@ class DataExtractor:
 
         return df_pdf
 
-    def list_number_of_stores(self):
+    def list_number_of_stores(self,url, headers):
         import requests
-        import json
-
-        url = "https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/number_stores"
-        headers = {
-            "Content-Type": "application/json",
-            "x-api-key": "yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX"
-        }
 
         response = requests.get(url, headers=headers)
-
-        print(json.dumps(response.json()))
+        
+        # import json
+        # print(json.dumps(response.json()))
         return response.json()['number_stores']
 
-    def retrieve_stores_data(self, store_id):
+    def retrieve_stores_data(self, url, headers, store_id):
         import requests
-        import json
 
-        url = "https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/" + str(store_id)
-        headers = {
-            "Content-Type": "application/json",
-            "x-api-key": "yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX"
-        }
+        response = requests.get(url+str(store_id), headers=headers)
 
-        response = requests.get(url, headers=headers)
-
+        #import json
         #print(json.dumps(response.json()))
         return response.json()
     
-    def extract_from_s3(self):
+    def extract_from_s3(self, bucket_name, file_key):
         import boto3
         from botocore import UNSIGNED
         from botocore.config import Config
 
-        BUCKET_NAME = 'data-handling-public' 
-        KEY = 'products.csv' 
         s3_client = boto3.client('s3', config=Config(signature_version=UNSIGNED))
 
         #create a list of 'Contect' objects from the s3 bucket
         #list_files = client.list_objects(Bucket=bucket)['Contents']
-        response = s3_client.get_object(Bucket=BUCKET_NAME, Key=KEY)
+        response = s3_client.get_object(Bucket=bucket_name, Key=file_key)
 
         status = response.get("ResponseMetadata", {}).get("HTTPStatusCode")
 
