@@ -556,7 +556,7 @@ def run_json_events():
     dfc_events.to_csv('./data/s3__events_clean.csv', sep=',', index=False, header=True, encoding='utf-8')
     
     print(f'\S3 to Local DB :: Events \n' )
-    connector.upload_to_db(dfc_events,'dim_events')
+    connector.upload_to_db(dfc_events,'dim_date_times')
 
     pass
 
