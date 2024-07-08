@@ -322,6 +322,13 @@ class DataCleaning:
         #drop useless column level_0
         df.drop(columns='level_0',inplace=True)
 
+        # remove non numeric characters from string like: 
+        # "?4971858637664481"
+        # "???3554954842403828"
+        # "??4654492346226715"
+        # "?3544855866042397"
+        df['card_number'] = df['card_number'].apply(lambda x: re.sub('[^0-9]', '', x) if isinstance(x,str) else x)
+
         return df
 
     def clean_events_data(self, df):
