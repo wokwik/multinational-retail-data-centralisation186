@@ -199,4 +199,29 @@ ALTER TABLE dim_store_details
 ALTER TABLE dim_users
 	ADD PRIMARY KEY (user_uuid);
 
-    
+
+-- adding foreign key consraints raises errors due to some cards in orders_table are missing in dim_card_detaisl table.
+
+-- locate card_number values that are present in orders_table but not in dim_card_details table
+SELECT ot.card_number 
+FROM orders_table AS ot
+LEFT JOIN dim_card_details AS ct
+ON ot.card_number = ct.card_number
+WHERE ct.card_number IS NULL;
+
+-- insert those card_number values in to the dim_card_details
+INSERT INTO dim_card_details (card_number)
+SELECT DISTINCT orders_table.card_number
+FROM orders_table
+WHERE orders_table.card_number NOT IN 
+	(SELECT dim_card_details.card_number
+	FROM dim_card_details);
+
+
+-- add the foreign keys to the orders_table now.
+ALTER TABLE orders_table
+    ADD FOREIGN KEY (card_number) REFERENCES dim_card_details(card_number),
+	ADD FOREIGN KEY (date_uuid) REFERENCES dim_date_times(date_uuid),
+	ADD FOREIGN KEY (product_code) REFERENCES dim_products(product_code),
+	ADD FOREIGN KEY (store_code) REFERENCES dim_store_details(store_code),
+	ADD FOREIGN KEY (user_uuid) REFERENCES dim_users(user_uuid);
