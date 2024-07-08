@@ -31,7 +31,7 @@ You can run the data_cleaning.py file locally on your machine, which then uses t
 
 2- navigate to the location of the data_cleaning.py file
 
-3- run data_cleaning.py using the following command:
+3- run data_cleaning.py by using the following command:
 
 > python data_cleaning.py
 

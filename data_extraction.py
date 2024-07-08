@@ -59,7 +59,6 @@ class DataExtractor:
         df_table: Pandas Dataframe
             A dataframe containing the data from the database table.
         '''
-        import pandas as pd
 
         engine = connector.init_db_engine(mode)
         
@@ -205,7 +204,6 @@ class DataExtractor:
 
 if __name__ == '__main__':
 
-    import pandas as pd
     from database_utils import DatabaseConnector
 
     extractor = DataExtractor()

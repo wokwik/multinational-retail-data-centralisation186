@@ -43,7 +43,7 @@ class DatabaseConnector:
 
         Returns:
         ----------
-        dataMap: dictionary
+        credsMap: dictionary
             contains the database connection parameters required for establishing the connection.
         '''
         import yaml
@@ -51,11 +51,11 @@ class DatabaseConnector:
         if mode == 'local':
             with open('db_creds_local.yaml') as f:
                 # use safe_load instead load
-                dataMap = yaml.safe_load(f)
+                credsMap = yaml.safe_load(f)
         elif mode == 'remote':
             with open('db_creds_remote.yaml') as f:
                 # use safe_load instead of load
-                dataMap = yaml.safe_load(f)
+                credsMap = yaml.safe_load(f)
         
         ## testing-start -> remove
         # for key, value in dataMap.items():
@@ -64,7 +64,7 @@ class DatabaseConnector:
         # print(dataMap['RDS_HOST'])
         # testing-end
 
-        return dataMap
+        return credsMap
 
     def init_db_engine(self, mode='remote'):
         '''

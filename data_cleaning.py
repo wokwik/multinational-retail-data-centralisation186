@@ -318,7 +318,9 @@ class DataCleaning:
         df.drop(['first_name'], axis=1, inplace=True)
         df.drop(['last_name'], axis=1, inplace=True)
         #drop empty column 1
-        df.drop(['1'], axis=1, inplace=True)
+        df.drop(columns=['1'], axis=1, inplace=True)
+        #drop useless column level_0
+        df.drop(columns='level_0',inplace=True)
 
         return df
 
@@ -562,8 +564,8 @@ if __name__ == '__main__':
     #run_warehouse_users()
     #run_pdf_cards_details()
     #run_api_stores()
-    #run_s3_products()
+    run_s3_products()
     #run_warehouse_orders()
-    run_json_events()
+    #run_json_events()
 
     #pass
