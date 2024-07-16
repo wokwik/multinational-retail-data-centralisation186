@@ -23,7 +23,7 @@ The project builds a Star Schema relationship between the different tables in th
 
 # ERP Diagram
 
-![screenshot](sales_data_schema_ERP.png)
+![screenshot](images/sales_data_schema_ERP.png)
 
 # Installation instruction
 You will need Python 3+ installed on your machine
