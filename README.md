@@ -21,6 +21,9 @@ The classes perform data cleaning tasks on the source data to ensure the data is
 
 The project builds a Star Schema relationship between the different tables in the Data Warehouse using SQL, and finally presents a number of analytics SQL code examples for gleaning insights from about the Retail Store performance.
 
+# ERP Diagram
+
+![screenshot](sales_data_schema_ERP.png)
 
 # Installation instruction
 You will need Python 3+ installed on your machine
